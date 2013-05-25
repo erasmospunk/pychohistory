@@ -6,16 +6,34 @@ import unittest
 import os
 import shutil
 
-from modules import db
+from modules import Datastore, GoogSuggestMe
 
 
 __author__ = 'Giannis Dzegoutanis'
 
-TEMP_FOLDER = "tmp"
-TEST_DATABASE = "testdatastore.tmp"
+TEMP_FOLDER = u'tmp'
+TEST_DATABASE = u'testdatastore.tmp'
+TEST_QUERY = u'test'
 
 datastore_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), TEMP_FOLDER)
 test_db_path = os.path.join(datastore_path, TEST_DATABASE)
+
+
+class TestGoogSuggestMe(unittest.TestCase):
+  def setUp(self):
+    self.log = logging.getLogger()
+
+  def tearDown(self):
+    try:
+      shutil.rmtree(datastore_path, True)
+    except:
+      pass
+
+  def test_suggest(self):
+    with Datastore.Bucket(test_db_path) as bucket:
+      with GoogSuggestMe.GoogSuggestMe(bucket) as goog:
+        goog.suggest(TEST_QUERY)
+      self.assertNotEqual(len(bucket.read(TEST_QUERY)), 0)
 
 
 class TestDatabase(unittest.TestCase):
@@ -30,17 +48,17 @@ class TestDatabase(unittest.TestCase):
 
   def test_bucket_open(self):
     """ Test if the database opens """
-    with db.Bucket(test_db_path) as bucket:
+    with Datastore.Bucket(test_db_path) as bucket:
       self.assertNotEqual(bucket, None, "Bucket is None")
 
   def test_update_version(self):
-    with db.Bucket(test_db_path) as bucket:
+    with Datastore.Bucket(test_db_path) as bucket:
       new_ver = bucket.version() + 1
       bucket.update_version(new_ver)
       self.assertEqual(bucket.version(), new_ver, "Failed updating to v%d" % new_ver)
 
     with self.assertRaises(Exception):
-      db.IoBucket(test_db_path)
+      Datastore.IoBucket(test_db_path)
 
   def test_bucket_read_write(self):
     """ Test if can write to database"""
@@ -60,10 +78,10 @@ class TestDatabase(unittest.TestCase):
       (now, "bitcoin otc", "64700"),
       (now, "bitcoinity", "192000")
     ]
-    with db.Bucket(test_db_path) as bucket:
+    with Datastore.Bucket(test_db_path) as bucket:
       bucket.write(test_key_vals)
 
-    with db.Bucket(test_db_path) as bucket:
+    with Datastore.Bucket(test_db_path) as bucket:
       self.assertEqual(len(bucket.read()), len(test_key_vals))
 
   def test_bucket_duplicates_read_write(self):
@@ -76,10 +94,10 @@ class TestDatabase(unittest.TestCase):
       (now, "bitcoin mining", "12100000")
     ]
 
-    with db.Bucket(test_db_path) as bucket:
+    with Datastore.Bucket(test_db_path) as bucket:
       bucket.write(test_key_vals)
 
-    with db.Bucket(test_db_path) as bucket:
+    with Datastore.Bucket(test_db_path) as bucket:
       self.assertEqual(len(bucket.read()), len(test_key_vals))
 
 
