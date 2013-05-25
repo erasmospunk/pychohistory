@@ -90,7 +90,6 @@ def write_goog_keywords_to_db(q, ioBucket):
      now_array.append(time_now)
 
    data = zip(now_array, parser.suggestions, parser.queries)
-   print data
    data = filter(filter_remove, data)
    ioBucket.write(data)
 
