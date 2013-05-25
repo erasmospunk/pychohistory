@@ -75,7 +75,6 @@ def add_keywords_to_db(base_query, ioBucket):
 
 def write_goog_keywords_to_db(q, ioBucket):
    """ Generate keywords and search traffic values from Google """
-   print unicode(q)
    query = urllib.urlencode({'q' : unicode(q)})
    url = "http://google.com/complete/search?output=toolbar&%s" % query
    time_now = datetime.utcnow()
