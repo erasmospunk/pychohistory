@@ -27,7 +27,7 @@ import logging
 from modules import db
 
 # Globals ###
-DEFAULT_DB_DIRECTORY = os.path.join("~", ".pychohistory", "ds")
+DEFAULT_DB_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PychoHistoryDatastore")
 FILTER_BLACKLIST = re.compile(".*thePhraseYouWantToBlackList.*") # TODO make configurable
 # Header #####################################################################
 
