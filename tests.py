@@ -17,6 +17,7 @@ TEST_DATABASE = "testdatastore.tmp"
 datastore_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), TEMP_FOLDER)
 test_db_path = os.path.join(datastore_path, TEST_DATABASE)
 
+
 class TestDatabase(unittest.TestCase):
   def setUp(self):
     self.log = logging.getLogger()

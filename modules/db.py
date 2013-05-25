@@ -7,6 +7,7 @@ __author__ = 'Giannis Dzegoutanis'
 
 DB_VERSION = 1
 
+
 class Bucket:
   def __init__(self, bucket_path):
     self._path = bucket_path
