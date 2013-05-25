@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Header #####################################################################
+#                                                             PychoHistory   #
+#
+#  201111 v0.1 first release
+#
+# Release info ###
+__version__   = "0.1"
+__author__ = 'Giannis Dzegoutanis'
+# Imports ###
+from sgmllib import SGMLParser
+import urllib2
+import urllib
+import sys
+from datetime import datetime
+import os
+from optparse import OptionParser
+import re
+import json
+import pprint
+import logging
+
+from modules import db
+
+# Globals ###
+DEFAULT_DB_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PychoHistoryDatastore")
+FILTER_BLACKLIST = re.compile(".*thePhraseYouWantToBlackList.*") # TODO make configurable
+# Header #####################################################################
+
+def filter_remove(row):
+  return FILTER_BLACKLIST.match(row[1]) is None
+# todo implement a module for filters. Delete FILTER_BLACKLIST global
+##############################################################################
+
+
+##############################################################################
+# Todo extract module GoogSuggestMe and create tests
+# src: http://stackoverflow.com/questions/4440139/is-there-a-google-insights-api
+# Define the class that will parse the suggestion XML
+class PullSuggestions(SGMLParser):
+
+   def reset(self):
+      SGMLParser.reset(self)
+      self.suggestions = []
+      self.queries = []
+
+   def start_suggestion(self, attrs):
+      for a in attrs:
+         if a[0] == 'data': self.suggestions.append(a[1])
+
+   def start_num_queries(self, attrs):
+      for a in attrs:
+         if a[0] == 'int': self.queries.append(a[1])
+
+
+def add_keywords_to_db(base_query, ioBucket):
+   """
+   Get keywords and put them to the db
+   """
+   base_query += "%s"
+   alphabet = "abcdefghijklmnopqrstuvwxyz"
+   for letter in alphabet:
+      q = base_query % letter
+      try:
+        write_goog_keywords_to_db(q, ioBucket)
+      except Exception, e:
+        sys.stderr.write(str(datetime.utcnow())+
+                    " An error occured while getting some "+
+                    "'google complete' results: "+
+                    e.message)
+
+def write_goog_keywords_to_db(q, ioBucket):
+   """ Generate keywords and search traffic values from Google """
+   query = urllib.urlencode({'q' : q})
+   url = "http://google.com/complete/search?output=toolbar&%s" % query
+   time_now = datetime.utcnow()
+
+   res = urllib2.urlopen(url)
+   parser = PullSuggestions()
+   parser.feed(res.read())
+   parser.close()
+
+   now_array = []
+   for _ in xrange(min(len(parser.suggestions), len(parser.queries))):
+     now_array.append(time_now)
+
+   data = zip(now_array, parser.suggestions, parser.queries)
+   data = filter(filter_remove, data)
+   ioBucket.write(data)
+
+# Todo module GoogSuggestMe
+##############################################################################
+
+
+# Main #######################################################################
+# todo make testable pls
+def queries_arg(option,opt_str,value,parser):
+  keywords = parser.rargs[0].split(',') if len(parser.rargs) > 0 else None
+  setattr(parser.values, option.dest, keywords)
+def main():
+  usage = 'usage: %prog'
+  parser = OptionParser(usage)
+
+  parser.add_option('-r', '--read', action='callback', callback=queries_arg, dest='read',
+                    help='Read from the datastore of the specified keywords i.e. keyword1,keyword2[,...]')
+  parser.add_option('-w', '--write', action='callback', callback=queries_arg, dest='write',
+                    help='Write to the datastore by fetching data from the net i.e. keyword1,keyword2[,...]')
+  parser.add_option('-j', '--json', action='store_true', dest='json',
+                    default=False, help='parse the datastore as json')
+
+  options, args = parser.parse_args()
+
+  if options.read is None and options.write is None:
+    parser.error("Must provide --read or --write operations")
+
+
+  db_directory = DEFAULT_DB_DIRECTORY
+  log = logging.getLogger()
+
+  if options.write:
+    for keyword in options.write:
+      # Create a datastore and fetch data for the keyword
+      with db.Bucket(os.path.join(db_directory, keyword)) as io_bucket:
+        add_keywords_to_db(keyword, io_bucket)
+  elif options.read:
+    for keyword in options.read:
+      # Print the datastore to the stdio TODO return valid json and python
+      pp = pprint.PrettyPrinter()
+      with db.Bucket(os.path.join(db_directory, keyword)) as io_bucket:
+        if options.json:
+          print(json.dumps(io_bucket.read()))
+        else:
+          pp.pprint(io_bucket.read())
+
+
+if __name__ == '__main__':
+  main()
+
+# Main #######################################################################

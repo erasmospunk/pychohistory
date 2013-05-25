@@ -1,3 +1,8 @@
+/PychoHistoryDatastore
+/tmp
+/.idea
+/pychohistory.iml
+
 *.py[cod]
 
 # C extensions
