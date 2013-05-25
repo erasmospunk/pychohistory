@@ -3,7 +3,10 @@
 # Header #####################################################################
 #                                                             PychoHistory   #
 #
-#  201111 v0.1 first release
+#   201111 v0.1 first release
+#
+# Dependencies
+# sqlite3, requests
 #
 # Release info ###
 __version__   = "0.1"
@@ -24,7 +27,7 @@ import logging
 from modules import db
 
 # Globals ###
-DEFAULT_DB_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PychoHistoryDatastore")
+DEFAULT_DB_DIRECTORY = os.path.join("~", ".pychohistory", "ds")
 FILTER_BLACKLIST = re.compile(".*thePhraseYouWantToBlackList.*") # TODO make configurable
 # Header #####################################################################
 
@@ -72,7 +75,8 @@ def add_keywords_to_db(base_query, ioBucket):
 
 def write_goog_keywords_to_db(q, ioBucket):
    """ Generate keywords and search traffic values from Google """
-   query = urllib.urlencode({'q' : q})
+   print unicode(q)
+   query = urllib.urlencode({'q' : unicode(q)})
    url = "http://google.com/complete/search?output=toolbar&%s" % query
    time_now = datetime.utcnow()
 
@@ -86,6 +90,7 @@ def write_goog_keywords_to_db(q, ioBucket):
      now_array.append(time_now)
 
    data = zip(now_array, parser.suggestions, parser.queries)
+   print data
    data = filter(filter_remove, data)
    ioBucket.write(data)
 
@@ -120,14 +125,16 @@ def main():
 
   if options.write:
     for keyword in options.write:
+      k = unicode(keyword)
       # Create a datastore and fetch data for the keyword
-      with db.Bucket(os.path.join(db_directory, keyword)) as io_bucket:
-        add_keywords_to_db(keyword, io_bucket)
+      with db.Bucket(os.path.join(db_directory, k)) as io_bucket:
+        add_keywords_to_db(k, io_bucket)
   elif options.read:
     for keyword in options.read:
+      k = unicode(keyword)
       # Print the datastore to the stdio TODO return valid json and python
       pp = pprint.PrettyPrinter()
-      with db.Bucket(os.path.join(db_directory, keyword)) as io_bucket:
+      with db.Bucket(os.path.join(db_directory, k)) as io_bucket:
         if options.json:
           print(json.dumps(io_bucket.read()))
         else:

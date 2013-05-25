@@ -42,7 +42,7 @@ class IoBucket:
     cur = self._con.cursor()
 
     # Check if PychoHistory table exists
-    cur.execute(""" SELECT name FROM sqlite_master WHERE type='table' AND name='PychoHistory'; """)
+    cur.execute(""" SELECT name FROM sqlite_master WHERE type='table' AND name='PychoHistory' """)
 
     if cur.fetchone() is None:
       cur.execute(""" CREATE TABLE PychoHistory(Version INTEGER, Description TEXT) """)
