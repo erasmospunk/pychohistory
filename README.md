@@ -8,9 +8,9 @@ The main purpose of this utility is to be the I/O ports of an A.I. to the WWW.
 
 Easy! Just paste this in your favorite terminal and you are ready to go.
 
-'''
+```
 git clone https://github.com/erasmospunk/pychohistory.git && cd pychohistory && pip install requests
-'''
+```
 
 See pychohistory -h for help
 
