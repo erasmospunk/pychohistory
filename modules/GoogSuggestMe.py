@@ -46,7 +46,7 @@ class Goog:
     """
     Get keywords and put them to the db
     """
-    base_query += u'%s'
+    base_query += u' %s'
     alphabet = u'abcdefghijklmnopqrstuvwxyz'
     for letter in alphabet:
       q = base_query % letter
