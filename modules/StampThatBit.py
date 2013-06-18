@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+import sys
 from modules.Datastore import ModuleIoBucket
 
 import modules.bitstamp.client as bsclient
@@ -47,11 +48,15 @@ class Stamp(ModuleIoBucket):
     Get the market values and save them to the datastore
     """
 
-    ticker = self._client.ticker()
+    try:
+      ticker = self._client.ticker()
+    except Exception as e:
+      sys.stderr.write(unicode(datetime.utcnow()) +
+                       u'An error occurred while connecting to BitStamp: ' + unicode(e.message))
 
-    values = [datetime.utcnow()]
-    values += [float(v) for v in ticker.values()]
-    # Make sure that that number of features match
-    values = tuple(values[:len(module_features)])
-
-    self.insert(values)
+    if ticker:
+      values = [datetime.utcnow()]
+      values += [float(v) for v in ticker.values()]
+      # Make sure that that number of features match
+      values = tuple(values[:len(module_features)])
+      self.insert(values)
