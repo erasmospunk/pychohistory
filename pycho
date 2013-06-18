@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Header #####################################################################
-#                                                             PychoHistory   #
-#
-#   201111 v0.1 first release
+# PychoHistory ###############################################################
 #
 # Dependencies
-# sqlite3, requests, python-dateutil, twython (for twitter)
+# sqlite3, requests, python-dateutil, twitter
 #
 # Imports ###
 import os
@@ -16,7 +13,7 @@ import logging
 from modules import BusinessLogic
 
 # Release info ###
-__version__ = "0.1"
+__version__ = "0.2"
 __author__ = 'Giannis Dzegoutanis'
 
 # Globals ###

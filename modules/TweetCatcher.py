@@ -4,11 +4,13 @@ from datetime import datetime
 import logging
 import os
 import sys
-from twython import TwythonStreamer
+
 from twitter import TwitterStream, OAuth, Twitter, oauth_dance, read_token_file
 import yaml
-from modules.Datastore import ModuleIoBucket
 from dateutil import parser as dateutilp
+
+from modules.Datastore import ModuleIoBucket
+
 
 __author__ = 'Giannis Dzegoutanis'
 
@@ -36,31 +38,6 @@ except IOError as e:
 
 OAUTH = (settings['oauth_consumer_credentials']['key'],
          settings['oauth_consumer_credentials']['secret'])
-
-
-class TweetStreamer(TwythonStreamer):
-  def __init__(self, io_bucket, oauth):
-    """
-    @type io_bucket: ModuleIoBucket
-    @oauth: (app_key, app_secret, oauth_token, oauth_token_secret)
-    """
-    app_key, app_secret, oauth_token, oauth_token_secret = oauth
-    super(TweetStreamer, self).__init__(app_key, app_secret, oauth_token, oauth_token_secret)
-
-    self._io_bucket = io_bucket
-
-  def on_success(self, data):
-    print data
-    self._io_bucket.insert(tweet2tuple(data))
-
-  def on_error(self, status_code, data):
-    print status_code, data
-
-  def open(self, query):
-    self.statuses.filter(track=query)
-
-  def close(self):
-    self.disconnect()
 
 
 class TweetCatcher(object):
