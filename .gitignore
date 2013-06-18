@@ -2,6 +2,7 @@
 /tmp
 /.idea
 /pychohistory.iml
+/settings.yaml
 
 *.py[cod]
 

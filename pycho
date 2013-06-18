@@ -6,7 +6,7 @@
 #   201111 v0.1 first release
 #
 # Dependencies
-# sqlite3, requests
+# sqlite3, requests, python-dateutil, twython (for twitter)
 #
 # Imports ###
 import os
@@ -36,12 +36,16 @@ def main():
   usage = 'usage: %prog'
   parser = OptionParser(usage)
 
-  parser.add_option('-r', '--read', action='callback', callback=queries_arg, dest='read',
-                    help='Read from the datastore of the specified keywords i.e. keyword1,keyword2[,...]')
+  parser.add_option('-d', '--debug', action='store_true', dest='debug',
+                    help='Set debug messages')
+  parser.add_option('-r', '--read', action='store_true', dest='read',
+                    help='Read from the datastore')
   parser.add_option('-w', '--write', action='callback', callback=queries_arg, dest='write',
                     help='Write to the datastore by fetching data from the net i.e. keyword1,keyword2[,...]')
-  parser.add_option('-j', '--json', action='store_true', dest='json',
-                    default=False, help='parse the datastore as json')
+  parser.add_option('-n', '--namespace', action='store', dest='ns',
+                    default=False, help='Specify the database namespace')
+  parser.add_option('-j', '--json', action="store_const", const='json', dest='json',
+                    default=False, help='Parse the datastore as json')
 
   options, args = parser.parse_args()
 
@@ -49,13 +53,18 @@ def main():
     parser.error("Must provide --read or --write operations")
 
   db_directory = DEFAULT_DB_DIRECTORY
-  log = logging.getLogger()
 
-  with BusinessLogic.BusinessLogic(db_directory) as logic:
+  # Set debug messages
+  if options.debug:
+    logging.basicConfig(level=logging.DEBUG)
+  else:
+    logging.basicConfig(level=logging.INFO)
+
+  with BusinessLogic.BusinessLogic(db_directory, options.ns) as logic:
     if options.write:
       logic.write(options.write)
     elif options.read:
-      logic.read(options.read, output_format=options.json)
+      logic.read(output_format=options.json)
 
 if __name__ == '__main__':
   main()

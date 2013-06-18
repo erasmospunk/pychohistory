@@ -1,0 +1,3 @@
+oauth_consumer_credentials:
+  key: your_key
+  secret: your_secret
