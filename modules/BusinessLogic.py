@@ -56,7 +56,6 @@ class Logic:
       # bucket.start_stream(queries[0])
 
   def printBucket(self, bucket, time, output_format):
-    print output_format
     if output_format.lower() == 'json':
       print(json.dumps(bucket.readall(time=time)))
     elif output_format.lower() == 'tsv':
