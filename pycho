@@ -41,12 +41,20 @@ def main():
                     help='Write to the datastore by fetching data from the net i.e. keyword1,keyword2[,...]')
   parser.add_option('-n', '--namespace', action='store', dest='ns',
                     default=False, help='Specify the database namespace')
-  parser.add_option('-j', '--json', action="store_const", const='json', dest='json',
-                    default=False, help='Parse the datastore as json')
+  parser.add_option('-f', '--format', action="store", dest='format',
+                    default=None, help='Parse the datastore as json, tsv')
+  parser.add_option('-t', '--time', action="store", dest='time',
+                    default=1, help='Get the results of from the last days (default: 1)')
+  parser.add_option('-l', '--list', action="store_true", dest='list',
+                    help='List all the databases')
+  parser.add_option('-m', '--module', action="store", dest='module',
+                    default='TweetCatcher', help='Read data from the specified module')
+
+
 
   options, args = parser.parse_args()
 
-  if options.read is None and options.write is None:
+  if options.read is None and options.write is None and options.list is None:
     parser.error("Must provide --read or --write operations")
 
   db_directory = DEFAULT_DB_DIRECTORY
@@ -61,7 +69,9 @@ def main():
     if options.write:
       logic.write(options.write)
     elif options.read:
-      logic.read(output_format=options.json)
+      logic.read(module=options.module, time=options.time, output_format=options.format)
+    elif options.list:
+      logic.list()
 
 if __name__ == '__main__':
   main()

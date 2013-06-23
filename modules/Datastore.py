@@ -172,7 +172,7 @@ class ModuleIoBucket(IoBucket):
     return u" INSERT INTO %s VALUES(NULL, %s ) " % (self._name(), features_query)
 
   def _create_select_all_query(self):
-    return u" SELECT * FROM %s " % self._name()
+    return u" SELECT * FROM %s ORDER BY timestamp DESC" % self._name()
 
   def _check_signature(self, signature_raw):
     (name, features, types) = tuple(json.loads(signature_raw))
@@ -220,7 +220,7 @@ class ModuleIoBucket(IoBucket):
   def insertmany(self, dbInput):
     self._executemany(self._query_insert, dbInput)
 
-  def readall(self):
+  def readall(self, time=1):
     return self._fetchall(self._query_select_all)
 
 

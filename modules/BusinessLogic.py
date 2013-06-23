@@ -3,8 +3,9 @@
 
 import os
 import json
+import csv
 import pprint
-from datetime import datetime
+import sys
 
 from modules import GoogSuggestMe, StampThatBit, TweetCatcher
 
@@ -31,16 +32,18 @@ class BusinessLogic:
 class Logic:
   def __init__(self, db_directory, namespace=False):
     self._db_directory = db_directory
-    now = datetime.utcnow()
-    self._db_name = u'%d-%02d-%02d.db' % (now.year, now.month, now.day)
-    if namespace:
-      self._db_name = u'%s.%s' % (unicode(namespace), self._db_name)
+    self._db_name = u'%s.db' % (unicode(namespace) if namespace else u'default')
 
   def _u(self, queries):
     return map(lambda x: unicode(x), queries)
 
   def _path(self):
     return os.path.join(self._db_directory, self._db_name)
+
+  def list(self):
+    for entry in sorted(os.listdir(self._db_directory)):
+      if entry.endswith('.db'):
+        print(entry.replace('.db',''))
 
   def write(self, queries):
     # Create a datastore and fetch data for the keyword
@@ -52,23 +55,40 @@ class Logic:
       bucket.search(queries[0])
       # bucket.start_stream(queries[0])
 
-  def printBucket(self, bucket, output_format):
-    pp = pprint.PrettyPrinter()
-    if output_format is 'json':
-      print(json.dumps(bucket.readall()))
+  def printBucket(self, bucket, time, output_format):
+    print output_format
+    if output_format.lower() == 'json':
+      print(json.dumps(bucket.readall(time=time)))
+    elif output_format.lower() == 'tsv':
+      tsv = TsvWriter(sys.stdout, dialect=csv.excel_tab)
+      tsv.writerows(bucket.readall(time=time))
     else:
-      pp.pprint(bucket.readall())
+      pprint.PrettyPrinter().pprint(bucket.readall(time=time))
 
-  def read(self, output_format=None):
-    # Print the datastore to the stdio TODO return valid json and python
-    # with GoogSuggestMe.GoogSuggestMe(self._path()) as bucket:
-    #   self.printBucket(bucket, output_format)
-    #
-    # with StampThatBit.StampThatBit(self._path()) as bucket:
-    #   self.printBucket(bucket, output_format)
-    #
-    # with TweetCatcher.TweetCatcher(self._path()) as bucket:
-    #   self.printBucket(bucket, output_format)
+  def read(self, module="TweetCatcher", time=1, output_format=None):
+    if module.lower() == "GoogSuggestMe".lower():
+      with GoogSuggestMe.GoogSuggestMe(self._path()) as bucket:
+        self.printBucket(bucket, time, output_format)
+    elif module.lower() == "StampThatBit".lower():
+      with StampThatBit.StampThatBit(self._path()) as bucket:
+        self.printBucket(bucket, time, output_format)
+    elif module.lower() == "TweetCatcher".lower():
+      with TweetCatcher.TweetCatcher(self._path()) as bucket:
+        self.printBucket(bucket, time, output_format)
 
-    with TweetCatcher.TweetCatcher(self._path()) as bucket:
-      self.printBucket(bucket, output_format)
+
+class TsvWriter:
+  """
+  A CSV writer which will write rows to CSV file "f",
+  which is encoded in the given encoding.
+  """
+
+  def __init__(self, f, dialect=csv.excel, **kwds):
+    self.writer = csv.writer(f, dialect=dialect, **kwds)
+
+  def writerow(self, row):
+    self.writer.writerow([s.encode("utf-8") if isinstance(s, (basestring, str)) else s for s in row])
+
+  def writerows(self, rows):
+    for row in rows:
+      self.writerow(row)
