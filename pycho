@@ -42,19 +42,21 @@ def main():
   parser.add_option('-n', '--namespace', action='store', dest='ns',
                     default=False, help='Specify the database namespace')
   parser.add_option('-f', '--format', action="store", dest='format',
-                    default=None, help='Parse the datastore as json, tsv')
+                    default='python', help='Input or output the datastore as python, json, tsv')
   parser.add_option('-t', '--time', action="store", dest='time',
                     default=1, help='Get the results of from the last days (default: 1)')
   parser.add_option('-l', '--list', action="store_true", dest='list',
                     help='List all the databases')
   parser.add_option('-m', '--module', action="store", dest='module',
                     default='TweetCatcher', help='Read data from the specified module')
+  parser.add_option('-i', '--import', action="store", dest='import_data',
+                    default=False, help='Import data')
 
 
 
   options, args = parser.parse_args()
 
-  if options.read is None and options.write is None and options.list is None:
+  if options.read is None and options.write is None and options.list is None and options.import_data is None:
     parser.error("Must provide --read or --write operations")
 
   db_directory = DEFAULT_DB_DIRECTORY
@@ -72,6 +74,8 @@ def main():
       logic.read(module=options.module, time=options.time, output_format=options.format)
     elif options.list:
       logic.list()
+    elif options.import_data:
+      logic.import_data(options.import_data, input_format=options.format, module=options.module)
 
 if __name__ == '__main__':
   main()

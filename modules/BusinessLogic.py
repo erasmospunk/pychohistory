@@ -55,16 +55,29 @@ class Logic:
       bucket.search(queries[0])
       # bucket.start_stream(queries[0])
 
-  def printBucket(self, bucket, time, output_format):
+  def printBucket(self, bucket, time, output_format='python'):
     if output_format.lower() == 'json':
       print(json.dumps(bucket.readall(time=time)))
     elif output_format.lower() == 'tsv':
       tsv = TsvWriter(sys.stdout, dialect=csv.excel_tab)
       tsv.writerows(bucket.readall(time=time))
-    else:
+    elif output_format.lower() == 'python':
       pprint.PrettyPrinter().pprint(bucket.readall(time=time))
+    else:
+      raise Exception('Format %s not supported' % output_format)
 
-  def read(self, module="TweetCatcher", time=1, output_format=None):
+  def import_data(self, file_name, input_format='python', module='TweeCatcher'):
+    if module.lower() == "GoogSuggestMe".lower():
+      with GoogSuggestMe.GoogSuggestMe(self._path()) as bucket:
+        pass
+    elif module.lower() == "StampThatBit".lower():
+      with StampThatBit.StampThatBit(self._path()) as bucket:
+        pass
+    elif module.lower() == "TweetCatcher".lower():
+      with TweetCatcher.TweetCatcher(self._path()) as bucket:
+        pass
+
+  def read(self, module="TweetCatcher", time=1, output_format='python'):
     if module.lower() == "GoogSuggestMe".lower():
       with GoogSuggestMe.GoogSuggestMe(self._path()) as bucket:
         self.printBucket(bucket, time, output_format)
@@ -91,3 +104,21 @@ class TsvWriter:
   def writerows(self, rows):
     for row in rows:
       self.writerow(row)
+
+
+# class TsvReader:
+#   """
+#   A CSV reader which will iterate over lines in the CSV file "f",
+#   which is encoded in the given encoding.
+#   """
+#
+#   def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+#     f = UTF8Recoder(f, encoding)
+#     self.reader = csv.reader(f, dialect=dialect, **kwds)
+#
+#   def next(self):
+#     row = self.reader.next()
+#     return [unicode(s, "utf-8") for s in row]
+#
+#   def __iter__(self):
+#     return self
